@@ -1,5 +1,6 @@
 ﻿using AspIdentity.Configuration;
 using AspIdentity.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -26,6 +27,8 @@ namespace AspIdentity.Controllers
         {
             return View();
         }
+
+        [Authorize]
         public async Task<IActionResult> Employees()
         {
             var employees = await _context.Employees.ToListAsync();

@@ -1,4 +1,5 @@
 using AspIdentity.Configuration;
+using AspIdentity.Factory;
 using AspIdentity.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,10 +30,19 @@ namespace AspIdentity
         {
             services.AddDbContext<ApplicationContext>(opts =>
                 opts.UseSqlServer(Configuration.GetConnectionString("sqlConnection")));
-            services.AddIdentity<User, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationContext>();
+            services.AddIdentity<User, IdentityRole>(opt =>
+            {
+                opt.Password.RequiredLength = 7;
+                opt.Password.RequireDigit = false;
+                opt.Password.RequireUppercase = false;
+                opt.Password.RequireNonAlphanumeric = false;
+
+                opt.User.RequireUniqueEmail = true;
+            }).AddEntityFrameworkStores<ApplicationContext>();
             services.AddControllersWithViews();
             services.AddAutoMapper(typeof(Startup));
+            services.ConfigureApplicationCookie(o => o.LoginPath = "/Account/Login");
+            services.AddScoped<IUserClaimsPrincipalFactory<User>, CustomClaimsFactory>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -50,9 +60,9 @@ namespace AspIdentity
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
